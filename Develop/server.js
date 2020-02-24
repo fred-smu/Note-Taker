@@ -1,16 +1,34 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require('fs');
 
-var express = require("express");
-var fs = require("fs");
-var app = express();
-var PORT = process.env.PORT || 3000;
+const app = express()
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static("public"))
+const port = 3000
 
-require("./routes/apiRoutes")(app);
-require("./routes/htmlRoutes")(app);
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.static('public'))
 
-app.listen(PORT, function() {
-  console.log("App listening on PORT: " + PORT);
-});
+app.get('/notes', function (req, res){
+  res.sendFile(__dirname + '/public/notes.html')
+})
+
+app.get('/api/notes', function (req, res) {
+  res.sendFile(__dirname + '/db/db.json')
+})
+
+app.post('/api/notes', function (req, res) {
+  console.log(req.body);
+  fs.readFile(__dirname + '/db/db.json', function (err, data) {
+    let newData = JSON.parse(data)
+    newData.push({title: req.body.title, text: req.body.text})
+    fs.writeFile(__dirname + '/db/db.json', JSON.stringify(newData), function (err) {
+      if (err) throw err;
+      res.send(JSON.stringify(newData))
+    })
+  })
+})
+
+app.listen(port, () => {
+  console.log('its going');
+})
